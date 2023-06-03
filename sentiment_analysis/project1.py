@@ -58,6 +58,11 @@ def hinge_loss_full(feature_matrix, labels, theta, theta_0):
     """
 
     # Your code here
+    # vectorized version
+    # predictions = np.matmul(feature_matrix, theta) + theta_0
+    # loss = np.maximum(0, 1 - predictions * labels)
+    # return np.mean(loss)
+
     loss = 0
     for i in range(len(feature_matrix)):
         loss += hinge_loss_single(feature_matrix[i], labels[i], theta, theta_0)
@@ -89,9 +94,8 @@ def perceptron_single_step_update(
     prediction = current_theta.dot(feature_vector) + current_theta_0
     result = prediction * label
 
-    if (result < 0 or np.abs(result) < 1e-10):
+    if result < 0 or np.abs(result) < 1e-10:
         current_theta, current_theta_0 = current_theta + feature_vector * label, current_theta_0 + label
-        return current_theta, current_theta_0
     return current_theta, current_theta_0
 
 
@@ -126,9 +130,15 @@ def perceptron(feature_matrix, labels, T):
             # prev_theta = theta
             # prev_theta_0 = theta_0
             theta, theta_0 = perceptron_single_step_update(feature_matrix[i], labels[i], theta, theta_0)
-            # if not np.array_equal(prev_theta, theta) or theta_0 != prev_theta_0:
-            #     count += 1
-            #     print("Updated {} time: theta{}, theta_0{}".format(count, theta, theta_0))
+        ######## vectorized version ########
+        # predictions = np.matmul(feature_matrix, theta) + theta_0
+        # misclassified = np.where(predictions * labels <= 0)[0]  return a boolean array
+        # if len(misclassified) == 0:
+        #     break
+        # updates = np.sum(feature_matrix[misclassified] * labels[misclassified][:, np.newaxis], axis=0)
+        # theta += updates
+        # theta_0 += np.sum(labels[misclassified])
+
     return theta, theta_0
 
 
@@ -255,6 +265,8 @@ def pegasos(feature_matrix, labels, T, L):
             if not np.array_equal(theta_prev, theta) or theta_0_prev != theta_0:
                 # print("Updated {} time: theta{}, theta_0{}".format(t, theta, theta_0))
                 t += 1
+            # vectorized version
+
     return theta, theta_0
 
 
@@ -296,6 +308,9 @@ def classify(feature_matrix, theta, theta_0):
             ret[i] = -1
         else:
             ret[i] = 1
+    # vectorized version
+    # results = np.matmul(feature_matrix, theta) + theta_0
+    # ret = np.where((results < 0) | (np.abs(results) < 1e-10), -1, 1)
     return ret
 
 
